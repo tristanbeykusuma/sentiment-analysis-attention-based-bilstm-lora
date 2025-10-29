@@ -68,13 +68,13 @@ def load_max_length():
 def load_models():
     # Load Attention model (.keras format)
     model_attention = tf.keras.models.load_model(
-        "model_attention.keras",
+        "attention_model.keras",
         custom_objects={"AttentionLayer": AttentionLayer}
     )
 
     # Load LoRA Attention model (.keras format)
     model_lora = tf.keras.models.load_model(
-        "model_attention_lora.keras",
+        "lora_attention_model.keras",
         custom_objects={"AttentionLayer": AttentionLayer, "ManualLoRA": ManualLoRA}
     )
 
