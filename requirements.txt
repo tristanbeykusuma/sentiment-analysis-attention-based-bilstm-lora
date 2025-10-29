@@ -1,8 +1,9 @@
-tensorflow==2.19.0
+tensorflow==2.20.0
+numpy==1.26.0
+protobuf>=4.23,<5.0
+typing-extensions>=4.5
 streamlit==1.26.0
 nltk==3.8.1
 spacy==3.5.3
 Sastrawi==1.0.1
-numpy==1.26.0
-protobuf>=4.23,<5.0
-typing-extensions>=4.5
+tqdm
