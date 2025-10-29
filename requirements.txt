@@ -1,0 +1,6 @@
+tensorflow
+streamlit
+nltk
+spacy
+Sastrawi
+numpy
