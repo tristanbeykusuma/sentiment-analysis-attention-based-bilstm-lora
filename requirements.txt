@@ -1,7 +1,7 @@
 tensorflow==2.20.0
-numpy==1.26.0
-streamlit==1.27.0
-nltk==3.8.1
-spacy==3.5.3
-Sastrawi==1.0.1
+numpy
+streamlit
+nltk
+spacy
+Sastrawi
 tqdm
