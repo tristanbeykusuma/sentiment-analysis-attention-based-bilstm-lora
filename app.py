@@ -151,10 +151,7 @@ st.title("🎭 Sentiment Analysis for Bali Tourism Reviews")
 
 st.markdown("""
 **Oleh Tristan Bey Kusuma (NIM 2008561053)**  
-Tugas Akhir “Implementasi Attention-Based BiLSTM dengan LORA Parameter Tuning untuk Analisis Sentimen Ulasan Destinasi Wisata”  
-Program Studi Informatika  
-Fakultas Matematika dan Ilmu Pengetahuan Alam  
-Universitas Udayana, 2025
+Tugas Akhir “Implementasi Attention-Based BiLSTM dengan LORA Parameter Tuning untuk Analisis Sentimen Ulasan Destinasi Wisata”
 """)
 
 st.write("Masukkan ulasan wisata Anda dan pilih model untuk memprediksi sentimen:")
