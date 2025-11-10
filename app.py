@@ -181,7 +181,7 @@ Tugas Akhir “Implementasi Attention-Based BiLSTM dengan LORA Parameter Tuning 
 
 if st.button("Reset App"):
     st.session_state.clear()
-    st.experimental_rerun()
+    st.rerun()
 
 st.write("Masukkan ulasan wisata Anda dan pilih model untuk memprediksi sentimen:")
 
