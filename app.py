@@ -8,9 +8,26 @@ import re
 from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
 import spacy
 import nltk
+import os
+import pandas as pd
 from nltk.corpus import stopwords
 
 nltk.download('stopwords')
+
+DB_PATH = "feedback_db.csv"
+
+# Initialize or load correction database
+def load_feedback_db():
+    if os.path.exists(DB_PATH):
+        return pd.read_csv(DB_PATH)
+    else:
+        df = pd.DataFrame(columns=["text", "preprocessed", "correct_sentiment"])
+        df.to_csv(DB_PATH, index=False)
+        return df
+
+def save_feedback_db(df):
+    df.to_csv(DB_PATH, index=False)
+
 
 # -----------------------------
 # Custom layers
@@ -135,17 +152,25 @@ def preprocess_text(text):
 
 reverse_label_mapping = {0: "positive", 1: "negative", 2: "neutral"}
 
-def predict_sentiment(text, model):
+def predict_sentiment(text, model, feedback_db):
     preprocessed = preprocess_text(text)
+
+    # Check if this preprocessed text exists in feedback DB
+    existing = feedback_db[feedback_db["preprocessed"] == preprocessed]
+    if not existing.empty:
+        # Use corrected sentiment directly
+        return existing.iloc[0]["correct_sentiment"], preprocessed, True
+    
     seq = tokenizer.texts_to_sequences([preprocessed])
     pad = pad_sequences(seq, maxlen=max_length, padding='post')
     pred = model.predict(pad)
     label = np.argmax(pred, axis=1)[0]
-    return reverse_label_mapping[label]
+    return reverse_label_mapping[label], preprocessed, False
 
 # -----------------------------
 # Streamlit UI
 # -----------------------------
+feedback_db = load_feedback_db()
 st.set_page_config(page_title="Sentiment Analysis Bali Tourism", layout="wide")
 st.title("🎭 Sentiment Analysis for Bali Tourism Reviews")
 
@@ -164,7 +189,32 @@ user_input = st.text_area("📝 Tulis ulasan di sini:")
 if st.button("Prediksi Sentimen"):
     if user_input.strip():
         with st.spinner("Memproses..."):
-            result = predict_sentiment(user_input, model_to_use)
-        st.success(f"Predicted sentiment ({model_choice}): **{result}**")
+            result, preprocessed_text, from_db = predict_sentiment(user_input, model_to_use, feedback_db)
+
+        if from_db:
+            st.success(f"Hasil prediksi diambil dari database koreksi pengguna: **{result}**")
+        else:
+            st.success(f"Prediksi model ({model_choice}): **{result}**")
+
+        # Feedback UI
+        st.markdown("---")
+        st.write("Apakah hasil prediksi ini sudah benar?")
+        col1, col2 = st.columns(2)
+        with col1:
+            correct = st.button("✅ Benar")
+        with col2:
+            incorrect = st.button("❌ Salah, ubah")
+
+        if incorrect:
+            new_sentiment = st.selectbox("Pilih sentimen yang benar:", ["positive", "negative", "neutral"])
+            if st.button("Simpan Koreksi"):
+                new_entry = pd.DataFrame([{
+                    "text": user_input,
+                    "preprocessed": preprocessed_text,
+                    "correct_sentiment": new_sentiment
+                }])
+                feedback_db = pd.concat([feedback_db, new_entry], ignore_index=True)
+                save_feedback_db(feedback_db)
+                st.success("✅ Koreksi disimpan! Model akan menggunakan nilai ini untuk teks yang sama di masa depan.")
     else:
         st.warning("Harap masukkan teks terlebih dahulu.")
