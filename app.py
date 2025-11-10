@@ -179,6 +179,10 @@ st.markdown("""
 Tugas Akhir “Implementasi Attention-Based BiLSTM dengan LORA Parameter Tuning untuk Analisis Sentimen Ulasan Destinasi Wisata”
 """)
 
+if st.button("Reset App"):
+    st.session_state.clear()
+    st.experimental_rerun()
+
 st.write("Masukkan ulasan wisata Anda dan pilih model untuk memprediksi sentimen:")
 
 model_choice = st.selectbox("Pilih model:", ["Attention Model", "LoRA Attention Model"])
@@ -191,30 +195,57 @@ if st.button("Prediksi Sentimen"):
         with st.spinner("Memproses..."):
             result, preprocessed_text, from_db = predict_sentiment(user_input, model_to_use, feedback_db)
 
-        if from_db:
-            st.success(f"Hasil prediksi diambil dari database koreksi pengguna: **{result}**")
-        else:
-            st.success(f"Prediksi model ({model_choice}): **{result}**")
-
-        # Feedback UI
-        st.markdown("---")
-        st.write("Apakah hasil prediksi ini sudah benar?")
-        col1, col2 = st.columns(2)
-        with col1:
-            correct = st.button("✅ Benar")
-        with col2:
-            incorrect = st.button("❌ Salah, ubah")
-
-        if incorrect:
-            new_sentiment = st.selectbox("Pilih sentimen yang benar:", ["positive", "negative", "neutral"])
-            if st.button("Simpan Koreksi"):
-                new_entry = pd.DataFrame([{
-                    "text": user_input,
-                    "preprocessed": preprocessed_text,
-                    "correct_sentiment": new_sentiment
-                }])
-                feedback_db = pd.concat([feedback_db, new_entry], ignore_index=True)
-                save_feedback_db(feedback_db)
-                st.success("✅ Koreksi disimpan! Model akan menggunakan nilai ini untuk teks yang sama di masa depan.")
+        # Save info in session_state (to persist across reruns)
+        st.session_state["last_input"] = user_input
+        st.session_state["last_result"] = result
+        st.session_state["last_model"] = model_choice
+        st.session_state["last_preprocessed"] = preprocessed_text
+        st.session_state["from_db"] = from_db
+        st.session_state["show_feedback"] = True  # show feedback UI
     else:
         st.warning("Harap masukkan teks terlebih dahulu.")
+
+# --- Show result if exists ---
+if "show_feedback" in st.session_state and st.session_state["show_feedback"]:
+    result = st.session_state["last_result"]
+    model_choice = st.session_state["last_model"]
+    from_db = st.session_state["from_db"]
+
+    if from_db:
+        st.success(f"Hasil prediksi diambil dari database koreksi pengguna: **{result}**")
+    else:
+        st.success(f"Prediksi model ({model_choice}): **{result}**")
+
+    # --- Feedback Section ---
+    st.markdown("---")
+    st.write("Apakah hasil prediksi ini sudah benar?")
+    col1, col2 = st.columns(2)
+
+    with col1:
+        if st.button("✅ Benar"):
+            st.session_state["show_feedback"] = False
+            st.info("Terima kasih! Prediksi telah dikonfirmasi benar.")
+
+    with col2:
+        if st.button("❌ Salah, ubah"):
+            st.session_state["show_correction"] = True  # trigger correction form
+
+    # --- Correction Form ---
+    if st.session_state.get("show_correction", False):
+        new_sentiment = st.selectbox(
+            "Pilih sentimen yang benar:",
+            ["positive", "negative", "neutral"],
+            key="correction_select"
+        )
+        if st.button("Simpan Koreksi"):
+            new_entry = pd.DataFrame([{
+                "text": st.session_state["last_input"],
+                "preprocessed": st.session_state["last_preprocessed"],
+                "correct_sentiment": new_sentiment
+            }])
+            feedback_db = pd.concat([feedback_db, new_entry], ignore_index=True)
+            save_feedback_db(feedback_db)
+
+            st.session_state["show_feedback"] = False
+            st.session_state["show_correction"] = False
+            st.success("✅ Koreksi disimpan! Model akan menggunakan nilai ini untuk teks yang sama di masa depan.")
