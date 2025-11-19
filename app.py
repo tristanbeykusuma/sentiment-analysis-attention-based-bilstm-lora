@@ -167,6 +167,11 @@ def predict_sentiment(text, model, feedback_db):
     label = np.argmax(pred, axis=1)[0]
     return reverse_label_mapping[label], preprocessed, False
 
+MAX_INPUT_WORDS = 245
+
+def is_too_long(text):
+    return len(text.split()) > MAX_INPUT_WORDS
+
 # -----------------------------
 # Streamlit UI
 # -----------------------------
@@ -192,6 +197,11 @@ user_input = st.text_area("📝 Tulis ulasan di sini:")
 
 if st.button("Prediksi Sentimen"):
     if user_input.strip():
+        # --- Length check ---
+        if is_too_long(user_input):
+            st.error(f"Teks terlalu panjang! Maksimal {MAX_INPUT_WORDS} kata.")
+            st.stop()
+        
         with st.spinner("Memproses..."):
             result, preprocessed_text, from_db = predict_sentiment(user_input, model_to_use, feedback_db)
 
