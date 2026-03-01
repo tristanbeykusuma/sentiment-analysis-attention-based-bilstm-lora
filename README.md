@@ -18,4 +18,4 @@ This is a Streamlit web app for performing **sentiment analysis** on Indonesian 
 - Real-time sentiment prediction via Streamlit interface.
 
 ---
-Developed by Tristan Bey Kusuma (NIM : 2008561053)
+Developed by Tristan Bey Kusuma (NIM : 2008561053) for research "Implementasi Attention-Based BiLSTM dengan LoRA Parameter Tuning untuk Analisis Sentimen Ulasan Destinasi Wisata" published at [https://doi.org/10.62411/tc.v25i1.15089](https://doi.org/10.62411/tc.v25i1.15089)
